@@ -12,17 +12,20 @@ def data_entropy(x, normalized=False):
     -------
     float
     """
-    
+
     counts = Counter(x)
 
-    entropy = 0
-    for i, count in counts.items():
-        entropy += (count/len(x)) * np.log2((count/len(x)))
-
-    if(normalized):
-        return -entropy/np.log2(len(counts))
+    if(len(counts) == 1):  ## To avoid division by log(0) error in normalized entropy.
+        return 0
     else:
-        return -entropy
+        entropy = 0
+        for i, count in counts.items():
+            entropy += (count/len(x)) * np.log2((count/len(x)))
+
+        if(normalized):
+            return -entropy/np.log2(len(counts))
+        else:
+            return -entropy
     
 def mutual_information(time_series_1, time_series_2):
     """
