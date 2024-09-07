@@ -1,2 +1,2 @@
-from info_theory import *
-from list_operations import *
+from .info_theory import *
+from .list_operations import *
