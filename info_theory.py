@@ -27,7 +27,7 @@ def data_entropy(x, normalized=False):
         else:
             return -entropy
     
-def mutual_information(time_series_1, time_series_2):
+def mutual_information(time_series_1, time_series_2, bootstrap=False, num_of_trials=1000):
     """
     Calculates mutual information between two discrete time series.
     
@@ -35,6 +35,8 @@ def mutual_information(time_series_1, time_series_2):
     ---------
     time_series_1 : list like
     time_series_2 : list like
+    bootstrap : bool, False
+    num_of_trials : int, 1000
     
     Returns
     -------
@@ -60,7 +62,17 @@ def mutual_information(time_series_1, time_series_2):
         prob_y = prob_time_series_2[j] / total_events
         mutual_info += prob_joint * np.log2(prob_joint / (prob_x*prob_y))
 
-    return mutual_info
+    if(bootstrap):
+        mutual_info_trials = []
+        for _ in range(num_of_trials):
+            time_series_1_boot = np.random.choice(time_series_1, len(time_series_1), replace=True)
+            time_series_2_boot = np.random.choice(time_series_2, len(time_series_2), replace=True)
+            mutual_info_boot = mutual_information(time_series_1_boot, time_series_2_boot)
+            mutual_info_trials.append(mutual_info_boot)
+
+        return mutual_info, mutual_info_trials
+    else:
+        return mutual_info
 
 def normalized_mutual_information(time_series_1, time_series_2):
     """
