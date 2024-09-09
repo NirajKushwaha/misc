@@ -192,7 +192,7 @@ class MutualInformation:
         self.bootstrap = bootstrap
         self.num_of_trials = num_of_trials
         
-        self.mutual_info = self._calculate_mutual_information(self.time_series_1, self.time_series_2)
+        self.mutual_info, self.joint_prob = self._calculate_mutual_information(self.time_series_1, self.time_series_2)
 
         if(self.bootstrap):
             self.mutual_info_trials = self._bootstrap()
@@ -218,9 +218,6 @@ class MutualInformation:
 
         joint_prob = Counter(joint_events)
         joint_prob = {k:v/total_events for k, v in joint_prob.items()}
-        
-        if np.array_equal(self.time_series_1, time_series_1) and np.array_equal(self.time_series_2, time_series_2):
-            self.joint_prob = joint_prob
 
         prob_time_series_1 = Counter(time_series_1)
         prob_time_series_2 = Counter(time_series_2)
@@ -232,7 +229,10 @@ class MutualInformation:
             prob_y = prob_time_series_2[j] / total_events
             mutual_info += prob_joint * np.log2(prob_joint / (prob_x*prob_y))
 
-        return mutual_info
+        if np.array_equal(self.time_series_1, time_series_1) and np.array_equal(self.time_series_2, time_series_2):
+            return mutual_info, joint_prob
+        else:
+            return mutual_info
 
     def _bootstrap(self):
         """
