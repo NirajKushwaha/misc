@@ -184,6 +184,7 @@ class MutualInformation:
     -------------------
     mutual_info : float
     mutual_info_trials : list of float
+    joint_prob : dict
     """
 
     def __init__(self, time_series_1, time_series_2, bootstrap=False, num_of_trials=1000):
