@@ -8,7 +8,9 @@ def polygons_intersection_mapping(gdf1, gdf2):
     Parameters
     ----------
     gdf1 : GeoDataFrame
+        The other GeoDataFrame to which the mapping is to be done.
     gdf2 : GeoDataFrame
+        The GeoDataFrame for which the mapping is to be done.
 
     Returns
     -------
