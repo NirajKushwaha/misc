@@ -1,4 +1,5 @@
 from utils import *
+import utm
 
 def polygons_intersection_mapping(gdf1, gdf2):
     """
@@ -35,4 +36,35 @@ def polygons_intersection_mapping(gdf1, gdf2):
             adm_mapping[polygon_2_ix] = max(intersection_areas, key=intersection_areas.get)
             
     return adm_mapping
-    
+
+def country_UTM(ISO3):
+    """
+    Get the UTM zone of a country based on its centroid.
+
+    Parameters
+    ----------
+    ISO3 : str
+        The ISO3 code of the country.
+
+    Returns
+    -------
+    str
+        The EPSG code of the UTM zone of the country
+    """
+
+    ISO3 = ISO3.upper()
+
+    world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+    country = world[world['iso_a3'] == f"{ISO3}"] 
+
+    country_centroid = country.centroid
+    lon, lat = float(country_centroid.x), float(country_centroid.y)
+
+    _,__,utm_zone_number,hemisphere = utm.from_latlon(lat, lon)
+
+    if hemisphere == 'N':
+        epsg_code = f"EPSG:326{utm_zone_number}"
+    else:
+        epsg_code = f"EPSG:327{utm_zone_number}"
+        
+    return epsg_code
