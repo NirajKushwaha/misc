@@ -1,5 +1,9 @@
 from utils import *
-import utm
+
+try:
+    import utm
+except:
+    print("utm package not found. Please install it using either pip or conda.")
 
 def polygons_intersection_mapping(gdf1, gdf2):
     """
@@ -68,3 +72,35 @@ def country_UTM(ISO3):
         epsg_code = f"EPSG:327{utm_zone_number}"
         
     return epsg_code
+
+def create_buffer_circle(lon, lat, radius_m):
+    """
+    Creates a buffer circle around a given point with a specified radius in meters.
+
+    Parameters
+    ----------
+    lon : float
+        Longitude of the center of the circle.
+    lat : float
+        Latitude of the center of the circle.
+    radius_m : float
+        Radius of the circle in meters.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        GeoDataFrame containing the circle as a single geometry
+    """
+
+    point = Point(lon, lat)
+
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
+
+    point_metric = transform(transformer.transform, point)
+
+    circle_metric = point_metric.buffer(radius_m)
+
+    transformer_reverse = Transformer.from_crs("EPSG:3857", "EPSG:4326", always_xy=True)
+    circle = transform(transformer_reverse.transform, circle_metric)
+
+    return gpd.GeoDataFrame({'geometry': [circle]}, crs="EPSG:4326")
