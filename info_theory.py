@@ -173,13 +173,6 @@ class MutualInformation:
     Currently supports MI calculation using frequency based method only.
     Estimation methods will be added in future.
     
-    Parameters
-    ----------
-    time_series_1 : list like
-    time_series_2 : list like
-    bootstrap : bool, False
-    num_of_trials : int, 1000
-    
     Instance Attributes
     -------------------
     mutual_info : float
@@ -187,11 +180,25 @@ class MutualInformation:
     joint_prob : dict
     """
 
-    def __init__(self, time_series_1, time_series_2, bootstrap=False, num_of_trials=1000):
+    def __init__(self, time_series_1, time_series_2, 
+                 bootstrap=False, 
+                 num_of_trials=1000, 
+                 parallel_bootstrap=False):
+        """
+        Parameters
+        ----------
+        time_series_1 : list like
+        time_series_2 : list like
+        bootstrap : bool, False
+        num_of_trials : int, 1000
+        parallel_bootstrap : bool, False
+        """
+        
         self.time_series_1 = time_series_1
         self.time_series_2 = time_series_2
         self.bootstrap = bootstrap
         self.num_of_trials = num_of_trials
+        self.parallel_bootstrap = parallel_bootstrap
         
         self.mutual_info, self.joint_prob = self._calculate_mutual_information(self.time_series_1, self.time_series_2)
 
@@ -244,12 +251,25 @@ class MutualInformation:
         list of float
         """
 
-        mutual_info_trials = []
-        for _ in range(self.num_of_trials):
-            time_series_1_boot = np.random.choice(self.time_series_1, len(self.time_series_1), replace=True)
-            time_series_2_boot = np.random.choice(self.time_series_2, len(self.time_series_2), replace=True)
+        if(self.parallel_bootstrap):
+            def looper(_):
+                time_series_1_boot = np.random.choice(self.time_series_1, len(self.time_series_1), replace=True)
+                time_series_2_boot = np.random.choice(self.time_series_2, len(self.time_series_2), replace=True)
 
-            mutual_info_boot = self._calculate_mutual_information(time_series_1_boot, time_series_2_boot)
-            mutual_info_trials.append(mutual_info_boot)
-        
-        return mutual_info_trials
+                mutual_info_boot = self._calculate_mutual_information(time_series_1_boot, time_series_2_boot)
+                return mutual_info_boot
+            
+            with Pool() as pool:
+                mutual_info_trials = pool.map(looper, range(self.num_of_trials), chunksize=50)
+            
+            return mutual_info_trials
+        else:
+            mutual_info_trials = []
+            for _ in range(self.num_of_trials):
+                time_series_1_boot = np.random.choice(self.time_series_1, len(self.time_series_1), replace=True)
+                time_series_2_boot = np.random.choice(self.time_series_2, len(self.time_series_2), replace=True)
+
+                mutual_info_boot = self._calculate_mutual_information(time_series_1_boot, time_series_2_boot)
+                mutual_info_trials.append(mutual_info_boot)
+            
+            return mutual_info_trials
