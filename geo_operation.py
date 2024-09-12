@@ -1,10 +1,5 @@
 from utils import *
 
-try:
-    import utm
-except:
-    print("utm package not found. Please install it using either pip or conda.")
-
 def polygons_intersection_mapping(gdf1, gdf2):
     """
     Get the mapping of polygons in gdf2 to polygons in gdf1
@@ -56,6 +51,11 @@ def country_UTM(ISO3):
         The EPSG code of the UTM zone of the country
     """
 
+    try:
+        import utm
+    except ImportError:
+        raise ImportError("'utm' package not found. Please install it using either pip or conda.")
+
     ISO3 = ISO3.upper()
 
     world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
@@ -91,6 +91,15 @@ def create_buffer_circle(lon, lat, radius_m):
     gpd.GeoDataFrame
         GeoDataFrame containing the circle as a single geometry
     """
+
+    try:
+        from pyproj import Transformer
+    except ImportError:
+        raise ImportError("'pyproj' package not found. Please install it using either pip or conda.")
+    try:
+        from shapely.ops import transform
+    except ImportError:
+        raise ImportError("'shapely' package not found. Please install it using either pip or conda.")
 
     point = Point(lon, lat)
 
