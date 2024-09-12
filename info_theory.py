@@ -183,7 +183,8 @@ class MutualInformation:
     def __init__(self, time_series_1, time_series_2, 
                  bootstrap=False, 
                  num_of_trials=1000, 
-                 parallel_bootstrap=False):
+                 parallel_bootstrap=False,
+                 multiprocess_chucksize=100):
         """
         Parameters
         ----------
@@ -192,13 +193,15 @@ class MutualInformation:
         bootstrap : bool, False
         num_of_trials : int, 1000
         parallel_bootstrap : bool, False
+        multiprocess_chucksize : int, 100
         """
-        
+
         self.time_series_1 = time_series_1
         self.time_series_2 = time_series_2
         self.bootstrap = bootstrap
         self.num_of_trials = num_of_trials
         self.parallel_bootstrap = parallel_bootstrap
+        self.multiprocess_chucksize = multiprocess_chucksize
         
         self.mutual_info, self.joint_prob = self._calculate_mutual_information(self.time_series_1, self.time_series_2)
 
@@ -260,7 +263,8 @@ class MutualInformation:
                 return mutual_info_boot
             
             with Pool() as pool:
-                mutual_info_trials = pool.map(looper, range(self.num_of_trials), chunksize=50)
+                mutual_info_trials = pool.map(looper, range(self.num_of_trials), 
+                                              chunksize=self.multiprocess_chucksize)
             
             return mutual_info_trials
         else:
