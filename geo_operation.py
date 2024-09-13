@@ -113,3 +113,29 @@ def create_buffer_circle(lon, lat, radius_m):
     circle = transform(transformer_reverse.transform, circle_metric)
 
     return gpd.GeoDataFrame({'geometry': [circle]}, crs="EPSG:4326")
+
+def latlong_to_shapely(dataframe, lat_column="latitude", lon_column="longitude"):
+    """
+    Convert dataframe containing latitude and longitude columns to a GeoDataFrame containing shapely points.
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        DataFrame containing latitude and longitude columns.
+    lat_column : str, "latitude"
+        Name of the latitude column.
+    lon_column : str, "longitude"
+        Name of the longitude column.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        GeoDataFrame containing the shapely points.
+    """
+
+    dataframe.columns = dataframe.columns.str.lower()
+
+    coordinates = [Point(lon, lat) for lat, lon in zip(dataframe[f"{lat_column}"], dataframe[f"{lon_column}"])]
+    dataframe = gpd.GeoDataFrame(dataframe, geometry=coordinates)
+
+    return dataframe
