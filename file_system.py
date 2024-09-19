@@ -14,6 +14,9 @@ def find_files(start_dir, file_extension, prefix=None, full_path=True):
     prefix : str, None
         The prefix that the files must start with.
         If None, the files can start with any prefix.
+    full_path : bool
+        If True, the function returns the full path to the files.
+        If False, the function returns only the filenames.
 
     Returns
     -------
