@@ -42,6 +42,11 @@ def min_in_parallel(array):
     float
     """
 
+    try:
+        import multiprocessing
+    except ImportError:
+        raise ImportError("'multiprocessing' package not found. Please install it using either pip or conda.")
+    
     def find_min_in_subarray(subarray, result, idx):
         min_val = np.min(subarray)
         result[idx] = min_val
@@ -82,6 +87,11 @@ def max_in_parallel(array):
     -------
     float
     """
+
+    try:
+        import multiprocessing
+    except ImportError:
+        raise ImportError("'multiprocessing' package not found. Please install it using either pip or conda.")
     
     def find_max_in_subarray(subarray, result, idx):
         max_val = np.max(subarray)
