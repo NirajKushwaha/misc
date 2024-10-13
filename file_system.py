@@ -3,7 +3,7 @@ from utils import *
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
     Find files in a directory that start with a given prefix and have a given extension.
-    The function traverses across all subdirectories of the srart_dir. 
+    The function traverses across all subdirectories of the start_dir. 
 
     Parameters
     ----------
