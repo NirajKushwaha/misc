@@ -28,3 +28,30 @@ def empirical_ccdf(samples):
     dt = dt[0]          #ccdf_data
     
     return dt
+
+def conditional_probability(x,y):
+    """
+    Calculate conditional probabilities for two data series.
+    
+    Parameters
+    ----------
+    x : 1D ndarray like
+    y : 1D ndarray like
+    
+    Returns
+    -------
+    dict
+    """
+    
+    assert len(x) == len(y)
+
+    y_counts = Counter(y)
+    total_samples = len(y)
+
+    xy_counts = Counter(zip(x,y))
+
+    cp_dict = {}
+    for xy in xy_counts.keys():
+        cp_dict[xy] = (xy_counts[xy]/total_samples) / (y_counts[xy[1]]/total_samples)
+
+    return cp_dict
