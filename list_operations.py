@@ -1,3 +1,5 @@
+### Contains functions for operation for list-like objects.
+
 from utils import *
 
 def normalize_to_range(lst, x, y):
@@ -120,3 +122,18 @@ def max_in_parallel(array):
     overall_max = np.max(max_values)
     
     return overall_max
+
+def dict_arr(dictionary):
+    """
+    Returns keys and values of a dict as ndarrays.
+
+    Parameters
+    ----------
+    dictionary : dict
+
+    Returns
+    -------
+    ndarray, ndarray
+    """
+
+    return np.array(list(dictionary.keys())), np.array(list(dictionary.values()))
