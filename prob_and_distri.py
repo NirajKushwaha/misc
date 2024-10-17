@@ -57,3 +57,38 @@ def conditional_probability(x,y):
         cp_dict[xy] = (xy_counts[xy]/total_samples) / (y_counts[xy[1]]/total_samples)
 
     return cp_dict
+
+def joint_probability(*data_series):
+    """
+    Calculate the joint probability distribution of multiple discrete data series.
+
+    Parameters
+    ----------
+    *data_series
+        Multiple data series as input, each represented as a list or iterable.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are tuples representing combinations of values
+        from the input series, and values are the corresponding joint probabilities.
+    """
+
+    if len(data_series) < 2:
+        raise ValueError("At least two data series are required for joint probability calculation.")
+
+    series_lengths = set(len(series) for series in data_series)
+    if len(series_lengths) != 1:
+        raise ValueError("All data series must have the same length.")
+
+    num_data_points = len(data_series[0])
+
+    joint_probabilities = Counter()
+
+    for data_points in zip(*data_series):
+        joint_probabilities[data_points] += 1
+
+    for key in joint_probabilities:
+        joint_probabilities[key] /= num_data_points
+
+    return joint_probabilities
