@@ -92,3 +92,24 @@ def joint_probability(*data_series):
         joint_probabilities[key] /= num_data_points
 
     return joint_probabilities
+
+def Freedman_Diaconis(data):
+    """
+    Calculate the number of bins for a histogram using the Freedman-Diaconis rule.
+
+    Parameters
+    ----------
+    data : array-like
+        The data to be used for the histogram.
+    
+    Returns
+    -------
+    int
+        The number of bins to use for the histogram
+    """
+
+    IQR = np.percentile(data, 75) - np.percentile(data, 25)
+    bin_width = 2 * IQR * len(data) ** (-1/3)
+    num_bins = int((np.max(data) - np.min(data)) / bin_width)
+
+    return num_bins
