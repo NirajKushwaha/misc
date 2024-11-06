@@ -1,13 +1,16 @@
 from utils import *
 
-def data_entropy(x, normalized=False):
+def data_entropy(x, normalized=False, base="e"):
     """
     Calculate shannon entropy for a series data.
-    
+
     Parameters
     ----------
     x : list like
-    
+    normalized : bool, False
+    base : int/"e", "e"
+        "e" for entropy in nats and 2 for entropy in bits.
+
     Returns
     -------
     float
@@ -20,10 +23,16 @@ def data_entropy(x, normalized=False):
     else:
         entropy = 0
         for i, count in counts.items():
-            entropy += (count/len(x)) * np.log2((count/len(x)))
-
+            if(base == "e"):
+                entropy += (count/len(x)) * np.log(count/len(x))
+            else:
+                entropy += (count/len(x)) * np.emath.logn(base, (count/len(x)))
+    
         if(normalized):
-            return -entropy/np.log2(len(counts))
+            if(base == "e"):
+                return -entropy/np.log(len(counts))
+            else:
+                return -entropy/np.emath.logn(base, len(counts))
         else:
             return -entropy
 
