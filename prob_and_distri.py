@@ -31,6 +31,34 @@ def empirical_ccdf(samples):
     
     return dt
 
+def empirical_pdf(samples):
+    """
+    Returns pdf of observed data.
+
+    Parameters
+    ----------
+    dt : ndarray
+
+    Returns
+    -------
+    pd.Series
+    """
+
+    dt = samples
+
+    if not isinstance(dt, np.ndarray):
+        # Convert x into a NumPy array
+        dt = np.array(dt)
+
+    dt = np.bincount(dt)
+    dt = dt/dt.sum()             #For Normalization
+    dt[dt == 0] = np.nan
+    dt = pd.DataFrame(dt)
+
+    dt = dt.drop_duplicates()
+
+    return dt
+
 def conditional_probability(x,y):
     """
     Calculate conditional probabilities for two data series.
