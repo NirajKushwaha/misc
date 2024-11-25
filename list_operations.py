@@ -1,6 +1,6 @@
 ### Contains functions for operation for list-like objects.
 
-from utils import *
+from .utils import *
 
 def normalize_to_range(lst, x, y):
     """
