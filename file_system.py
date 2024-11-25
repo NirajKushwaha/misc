@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
