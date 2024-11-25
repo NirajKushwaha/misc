@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 
 def data_entropy(x, normalized=False, base="e"):
     """
