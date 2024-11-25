@@ -1,6 +1,6 @@
 #### Contains functions for operations related to probabilities and distributions.
 
-from utils import *
+from .utils import *
 
 def empirical_ccdf(samples):
     """
