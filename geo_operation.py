@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 from shapely.geometry import Point
 
 def polygons_intersection_mapping(gdf1, gdf2):
