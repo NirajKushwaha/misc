@@ -137,3 +137,29 @@ def dict_arr(dictionary):
     """
 
     return np.array(list(dictionary.keys())), np.array(list(dictionary.values()))
+
+def unique_tuple_int_assigner(tuples_list):
+    """
+    Replace each unique tuple in a list with unique unique integer identifier.
+
+    Parameters
+    ----------
+    tuples_list : list
+    
+    Returns
+    -------
+    list
+    """
+
+    unique_map = {}
+    counter = 0
+
+    replaced_list = []
+
+    for tup in tuples_list:
+        if tup not in unique_map:
+            unique_map[tup] = counter
+            counter += 1
+        replaced_list.append(unique_map[tup])
+        
+    return replaced_list
