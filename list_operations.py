@@ -10,7 +10,9 @@ def normalize_to_range(lst, x, y, min_val=None, max_val=None):
     ----------
     lst : list-like
     x : float
+        Minimum value in the normalized list.
     y : float
+        Maximum value in the normalized list.
     min_val : float, optional
         Minimum cutoff value to use. If None, the minimum value in the list is used. Default is None.
     max_val : float, optional
