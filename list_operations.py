@@ -2,7 +2,7 @@
 
 from .utils import *
 
-def normalize_to_range(lst, x, y):
+def normalize_to_range(lst, x, y, min_val=None, max_val=None):
     """
     Normalize a list of values to a given range, ignoring np.nan values.
 
@@ -20,8 +20,10 @@ def normalize_to_range(lst, x, y):
 
     arr = np.array(lst, dtype=np.float64)
 
-    min_val = np.nanmin(arr)
-    max_val = np.nanmax(arr)
+    if(min_val is None):
+        min_val = np.nanmin(arr)
+    if(max_val is None):
+        max_val = np.nanmax(arr)
 
     # Edge case: if all non-nan values are the same, return a list of `x`, preserving np.nan values
     if min_val == max_val:
