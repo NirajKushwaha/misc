@@ -2,13 +2,18 @@
 
 from .utils import *
 
-def empirical_ccdf(samples, plot=False):
+def empirical_ccdf(samples, plot=False, return_data=False):
     """
     Returns ccdf of observed data.
     
     Parameters
     ----------
     samples : ndarray
+        1D array of observed data.
+    plot : bool, optional
+        If True, plot the ccdf.
+    return_data : bool, optional
+        If True, return the ccdf data.
     
     Returns
     -------
@@ -31,8 +36,8 @@ def empirical_ccdf(samples, plot=False):
 
     if(plot):
         plt.loglog(dt)
-    
-    return dt
+    if(return_data):
+        return dt
 
 def empirical_pdf(samples):
     """
