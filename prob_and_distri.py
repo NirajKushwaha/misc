@@ -2,7 +2,7 @@
 
 from .utils import *
 
-def empirical_ccdf(samples):
+def empirical_ccdf(samples, plot=False):
     """
     Returns ccdf of observed data.
     
@@ -28,6 +28,9 @@ def empirical_ccdf(samples):
     dt = dt.cumsum(skipna=True)           #To get commulaative distribution
     dt = (1-dt)                    #To get complimentary commulative distribution
     dt = dt[0]          #ccdf_data
+
+    if(plot):
+        plt.loglog(dt)
     
     return dt
 
