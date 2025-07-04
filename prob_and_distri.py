@@ -5,6 +5,7 @@ from .utils import *
 def empirical_ccdf(samples, plot=False, return_data=False):
     """
     Returns ccdf of observed data.
+    Only works for discrete data.
     
     Parameters
     ----------
@@ -42,6 +43,7 @@ def empirical_ccdf(samples, plot=False, return_data=False):
 def empirical_pdf(samples):
     """
     Returns pdf of observed data.
+    Only works for discrete data.
 
     Parameters
     ----------
