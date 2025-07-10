@@ -60,3 +60,23 @@ def save_pickle(data, file_name):
 
     with open(file_name, 'wb') as file:
         pickle.dump(data, file)
+
+def load_pickle(file_name):
+    """
+    Load a pickle file.
+    
+    Parameters
+    ----------
+    file_name : str
+        The name of the file to load.
+    
+    Returns
+    -------
+    data : object
+        The data loaded from the pickle file.
+    """
+
+    with open(file_name, 'rb') as file:
+        data = pickle.load(file)
+
+    return data
