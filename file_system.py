@@ -1,4 +1,5 @@
 from .utils import *
+import dill as pickle
 
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
@@ -44,3 +45,18 @@ def find_files(start_dir, file_extension, prefix=None, full_path=True):
                         matching_files.append(filename)
     
     return matching_files
+
+def save_pickle(data, file_name):
+    """
+    Save data to a pickle file.
+
+    Parameters
+    ----------
+    data 
+        The data to be saved.
+    file_name : str
+        The name of the file where the data will be saved.
+    """
+
+    with open(file_name, 'wb') as file:
+        pickle.dump(data, file)
