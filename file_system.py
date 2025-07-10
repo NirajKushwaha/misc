@@ -1,5 +1,6 @@
 from .utils import *
 import dill as pickle
+import gzip
 
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
@@ -46,29 +47,39 @@ def find_files(start_dir, file_extension, prefix=None, full_path=True):
     
     return matching_files
 
-def save_pickle(data, file_name):
+def save_pickle(data, file_name, compress=False):
     """
     Save data to a pickle file.
 
     Parameters
     ----------
-    data 
+    data
         The data to be saved.
     file_name : str
-        The name of the file where the data will be saved.
+        The name of the file along with the path where the data will be saved.
+    compress : bool, False
+        If True, the file will be compressed using gzip.
+        Filename should end in .gz if compress is True and .p otherwise.
+        Compressed files take less space but require more time to read/write.
     """
 
-    with open(file_name, 'wb') as file:
-        pickle.dump(data, file)
+    if compress:
+        with gzip.open(file_name, 'wb') as file:
+            pickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
+    else:
+        with open(file_name, 'wb') as file:
+            pickle.dump(data, file)
 
-def load_pickle(file_name):
+def load_pickle(file_name, compressed=False):
     """
     Load a pickle file.
     
     Parameters
     ----------
     file_name : str
-        The name of the file to load.
+        The name of the file along with the path from which the data will be loaded.
+    compressed : bool, False
+        If True, the file is expected to be compressed using gzip.
     
     Returns
     -------
@@ -76,7 +87,11 @@ def load_pickle(file_name):
         The data loaded from the pickle file.
     """
 
-    with open(file_name, 'rb') as file:
-        data = pickle.load(file)
+    if compressed:
+        with gzip.open(file_name, 'rb') as file:
+            data = pickle.load(file)
+    else:
+        with open(file_name, 'rb') as file:
+            data = pickle.load(file)
 
     return data
