@@ -95,3 +95,22 @@ def load_pickle(file_name, compressed=False):
             data = pickle.load(file)
 
     return data
+
+def size_of_object(obj):
+    """
+    Get the size of an object in megabytes.
+
+    Parameters
+    ----------
+    obj : object
+        The object whose size is to be determined.
+
+    Returns
+    -------
+    size : int
+        The size of the object in megabytes.
+    """
+
+    size_bytes = sys.getsizeof(obj)
+    size_mb = size_bytes / (1024 * 1024)
+    return size_mb
