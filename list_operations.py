@@ -144,7 +144,7 @@ def dict_arr(dictionary):
     ndarray, ndarray
     """
 
-    return np.array(list(dictionary.keys())), np.array(list(dictionary.values()))
+    return np.array(list(dictionary.keys()), dtype=object), np.array(list(dictionary.values()), dtype=object)
 
 def unique_tuple_int_assigner(tuples_list):
     """
