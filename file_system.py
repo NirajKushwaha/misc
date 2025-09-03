@@ -114,3 +114,41 @@ def size_of_object(obj):
     size_bytes = sys.getsizeof(obj)
     size_mb = size_bytes / (1024 * 1024)
     return size_mb
+
+def save_nc(data, file_name, compress=False):
+    """"
+    Save xarray Dataset to a NetCDF file with optional compression.
+
+    Parameters
+    ----------
+    data : xarray.Dataset
+        The xarray Dataset to be saved.
+    file_name : str
+        The name of the output NetCDF file, with extension .nc
+    compress : bool, False
+        If True, the file will be compressed using zlib.
+    """
+
+    if compress:
+        comp = dict(zlib=True, complevel=5)
+        encoding = {var: comp for var in data.data_vars}
+        data.to_netcdf(file_name, encoding=encoding)
+    else:
+        data.to_netcdf(file_name)
+
+def load_nc(file_name):
+    """
+    Load an xarray Dataset from a NetCDF file.
+
+    Parameters
+    ----------
+    file_name : str
+        The name of the input NetCDF file, with extension .nc
+
+    Returns
+    -------
+    xarray.Dataset
+        The loaded xarray Dataset.
+    """
+
+    return xr.load_dataset(file_name)
