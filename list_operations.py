@@ -131,20 +131,24 @@ def max_in_parallel(array):
     
     return overall_max
 
-def dict_arr(dictionary):
+def dict_arr(dictionary, list_output=False):
     """
     Returns keys and values of a dict as ndarrays.
 
     Parameters
     ----------
     dictionary : dict
+    list_output : bool, False
+        If True, returns lists instead of ndarrays.
 
     Returns
     -------
     ndarray, ndarray
     """
-
-    return np.array(list(dictionary.keys()), dtype=object), np.array(list(dictionary.values()), dtype=object)
+    if(list_output):
+        return list(dictionary.keys()), list(dictionary.values())
+    else:
+        return np.array(list(dictionary.keys()), dtype=object), np.array(list(dictionary.values()), dtype=object)
 
 def unique_tuple_int_assigner(tuples_list):
     """
