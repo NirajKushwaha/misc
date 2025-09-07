@@ -145,6 +145,7 @@ def dict_arr(dictionary, list_output=False):
     -------
     ndarray, ndarray
     """
+
     if(list_output):
         return list(dictionary.keys()), list(dictionary.values())
     else:
