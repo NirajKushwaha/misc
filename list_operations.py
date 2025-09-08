@@ -153,7 +153,7 @@ def dict_arr(dictionary, list_output=False):
 
 def unique_tuple_int_assigner(tuples_list):
     """
-    Replace each unique tuple in a list with unique unique integer identifier.
+    Replace each unique tuple in a list with an unique integer identifier.
 
     Parameters
     ----------
