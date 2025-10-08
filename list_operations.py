@@ -176,3 +176,33 @@ def unique_tuple_int_assigner(tuples_list):
         replaced_list.append(unique_map[tup])
         
     return replaced_list
+
+def overlap_range(ranges):
+    """Find the overlapping range from a list of (low, high) ranges.
+
+    Parameters
+    ----------
+    ranges : list of tuple
+        A list of (low, high) tuples representing ranges.
+    
+    Returns
+    -------
+    tuple
+        A tuple (overlap_low, overlap_high) representing the overlapping range. If there is no overlap, returns (np.nan, np.nan).
+    """
+
+    lows = []
+    highs = []
+    for i, r in enumerate(ranges):
+        if len(r) != 2:
+            raise ValueError(f"Range at index {i} does not have exactly 2 elements: {r!r}")
+        low, high = r
+        if low > high:
+            low, high = high, low
+        lows.append(low)
+        highs.append(high)
+    overlap_low = max(lows)
+    overlap_high = min(highs)
+    if overlap_low <= overlap_high:
+        return (overlap_low, overlap_high)
+    return (np.nan, np.nan)
