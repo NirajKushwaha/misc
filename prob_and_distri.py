@@ -4,8 +4,9 @@ from .utils import *
 
 def empirical_ccdf(samples, plot=True, return_data=False):
     """
-    Returns ccdf of observed data.
+    Plots ccdf of observed data.
     Only works for discrete data.
+    This function is to be used for a very basic first look at the data.
     
     Parameters
     ----------
