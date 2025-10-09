@@ -206,3 +206,32 @@ def overlap_range(ranges):
     if overlap_low <= overlap_high:
         return (overlap_low, overlap_high)
     return (np.nan, np.nan)
+
+def sum_columns_in_groups(arr, group_size=10):
+    """
+    Successively sum columns of a NumPy array in groups.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        2D input array of shape (rows, columns)
+    group_size : int, 10
+        Number of columns per summation group
+
+    Returns
+    -------
+    np.ndarray
+        New array where each column is the sum of a group of columns.
+        The last group may have fewer columns if the total number
+        of columns isn't divisible by group_size.
+    """
+
+    n_cols = arr.shape[1]
+    n_groups = (n_cols + group_size - 1) // group_size  # ceiling division
+
+    summed_blocks = [
+        arr[:, i*group_size:(i+1)*group_size].sum(axis=1)
+        for i in range(n_groups)
+    ]
+
+    return np.column_stack(summed_blocks)
