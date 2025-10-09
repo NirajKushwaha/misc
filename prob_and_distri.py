@@ -2,7 +2,7 @@
 
 from .utils import *
 
-def empirical_ccdf(samples, plot=False, return_data=False):
+def empirical_ccdf(samples, plot=True, return_data=False):
     """
     Returns ccdf of observed data.
     Only works for discrete data.
@@ -11,9 +11,9 @@ def empirical_ccdf(samples, plot=False, return_data=False):
     ----------
     samples : ndarray
         1D array of observed data.
-    plot : bool, optional
+    plot : bool, True
         If True, plot the ccdf.
-    return_data : bool, optional
+    return_data : bool, False
         If True, return the ccdf data.
     
     Returns
