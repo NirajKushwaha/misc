@@ -226,6 +226,13 @@ def sum_columns_in_groups(arr, group_size=10):
         of columns isn't divisible by group_size.
     """
 
+    arr = np.asarray(arr)
+
+    # Handle 1D input by temporarily adding a new axis
+    is_1d = arr.ndim == 1
+    if is_1d:
+        arr = arr[np.newaxis, :]
+
     n_cols = arr.shape[1]
     n_groups = (n_cols + group_size - 1) // group_size  # ceiling division
 
