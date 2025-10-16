@@ -151,7 +151,7 @@ def plot_discrete_ccdf(
     # Decide whether to plot with error bars or not
     if err is None:
         # single simulation or no valid error -> plot mean only
-        ax.plot(xs[plot_mask], mean_ccdf[plot_mask], '.-', label='CCDF' if n_sims == 1 else 'Mean CCDF')
+        ax.plot(xs[plot_mask], mean_ccdf[plot_mask], '.-', label=f'{plot_label}' if n_sims == 1 else 'Mean CCDF')
     else:
         if plot_errors:
             ax.errorbar(
