@@ -41,6 +41,141 @@ def empirical_ccdf(samples, plot=True, return_data=False):
     if(return_data):
         return dt
 
+def plot_discrete_ccdf(
+    simulations,
+    ax=None,
+    xlabel='Value',
+    error='std',           # 'std' or 'sem'
+    use_log_y=True,
+    use_log_x=True,
+    capsize=3,
+    plot_errors=True,
+    plot_label=""
+):
+    """
+    THIS CODE HASNE'T BEEN TESTED THOROUGHLY.
+
+    Plot discrete CCDF (P(X > x)) with error bars across simulations.
+    Interpolation is NOT used; CCDF is computed exactly on integer grid.
+
+    Behaviour:
+      - If `simulations` contains a single array, plot its CCDF without error bars.
+      - If multiple simulations are provided, plot the mean CCDF and error bars
+        (std or sem). If the computed error is all NaN, fall back to plotting the mean only.
+
+    Parameters
+    ----------
+    simulations : list of 1D numpy arrays (integer-valued)
+    ax : matplotlib.axes.Axes or None
+    xlabel : label for x axis
+    error : 'std' or 'sem' for whether to plot standard deviation or standard error
+    use_log_y : if True, set yscale to 'log' (mask zeros)
+    use_log_x : if True, set xscale to 'log' (requires x>0)
+    capsize : errorbar capsize
+    """
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    if len(simulations) == 0:
+        raise ValueError("simulations list is empty")
+
+    # Ensure integer arrays
+    sims = [np.asarray(s).astype(int) for s in simulations]
+    # Global support
+    global_min = min(s.min() for s in sims if s.size > 0)
+    global_max = max(s.max() for s in sims if s.size > 0)
+    xs = np.arange(global_min, global_max + 1)
+
+    # Preallocate ccdf matrix: shape (n_sims, len(xs))
+    n_sims = len(sims)
+    ccdfs = np.full((n_sims, xs.size), np.nan, dtype=float)
+
+    for i, s in enumerate(sims):
+        if s.size == 0:
+            # if a simulation has no observations, leave row as NaNs
+            continue
+
+        # bincount aligned to global_min..global_max
+        offset = global_min
+        counts = np.bincount(s - offset, minlength=xs.size)
+        N = counts.sum()
+        if N == 0:
+            continue
+        # empirical CDF at each grid value v: P(X <= v)
+        cdf = np.cumsum(counts) / N
+        # CCDF as P(X > x) = 1 - P(X <= x)
+        ccdf = 1.0 - cdf
+        ccdfs[i, :] = ccdf
+
+    # If there is only one simulation (or effectively one non-empty),
+    # prefer plotting that single CCDF without error bars.
+    nonempty_count_per_sim = np.array([0 if s.size == 0 else 1 for s in sims])
+    # Compute mean and errors in the usual case (nan-aware)
+    mean_ccdf = np.nanmean(ccdfs, axis=0)
+
+    if n_sims == 1:
+        err = None
+    else:
+        if error == 'std':
+            err = np.nanstd(ccdfs, axis=0)
+        elif error == 'sem':
+            # sem uses n-1 by default; handle variable counts
+            n_nonan = np.sum(~np.isnan(ccdfs), axis=0)
+            # ddof=1 for sample std; result will be nan when n_nonan<=1
+            std = np.nanstd(ccdfs, axis=0, ddof=1)
+            with np.errstate(invalid='ignore', divide='ignore'):
+                err = std / np.sqrt(n_nonan)
+                err[n_nonan <= 1] = np.nan
+        else:
+            raise ValueError("error must be 'std' or 'sem'")
+
+        # If err is entirely NaN (e.g., every column had n_nonan<=1), don't plot errorbars.
+        if np.all(np.isnan(err)):
+            err = None
+
+    # For plotting on log y: remove points where mean_ccdf == 0 or NaN
+    plot_mask = ~np.isnan(mean_ccdf)
+    if use_log_y:
+        plot_mask &= (mean_ccdf > 0)
+
+    # For log-x: ensure xs>0
+    if use_log_x:
+        if np.any(xs <= 0):
+            # cannot set log-x when xs contains nonpositive values;
+            # drop nonpositive xs from plotting (but still compute for them)
+            plot_mask &= (xs > 0)
+
+    if not np.any(plot_mask):
+        raise RuntimeError("No valid points to plot (all CCDFs are zero/NaN given log options).")
+
+    # Decide whether to plot with error bars or not
+    if err is None:
+        # single simulation or no valid error -> plot mean only
+        ax.plot(xs[plot_mask], mean_ccdf[plot_mask], '.-', label='CCDF' if n_sims == 1 else 'Mean CCDF')
+    else:
+        if plot_errors:
+            ax.errorbar(
+                xs[plot_mask],
+                mean_ccdf[plot_mask],
+                yerr=err[plot_mask],
+                fmt='.-',
+                capsize=capsize,
+                label=f'{plot_label}'
+            )
+        else:
+            ax.plot(xs[plot_mask], mean_ccdf[plot_mask], '.-', label=f'{plot_label}')
+
+    if use_log_y:
+        ax.set_yscale('log')
+    if use_log_x:
+        ax.set_xscale('log')
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel('CCDF')
+    ax.grid(True, which='both', ls='--', alpha=0.6)
+    ax.legend()
+    return ax
+
 def empirical_pdf(samples):
     """
     Returns pdf of observed data.
