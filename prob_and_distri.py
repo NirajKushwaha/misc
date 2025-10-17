@@ -176,6 +176,171 @@ def plot_discrete_ccdf(
     ax.legend()
     return ax
 
+def plot_continuous_ccdf(
+    simulations,
+    ax=None,
+    xlabel='Value',
+    error='std',           # 'std' or 'sem'
+    use_log_y=True,
+    use_log_x=True,
+    capsize=3,
+    plot_errors=True,
+    plot_label="",
+    xs=None,                # optional evaluation points (1D array). If None, auto generates.
+    num=200,                # when xs is None, number of points to evaluate on
+    percentile_range=(0.0, 100.0),  # trim extremes when auto-generating xs (useful for heavy tails)
+    step=True               # plot as steps (empirical CCDF) if True, else connect points
+):
+    """
+    THIS CODE HASNE'T BEEN TESTED THOROUGHLY.
+
+    Plot empirical CCDF (P(X > x)) for continuous-valued simulations.
+
+    Behavior:
+      - If `simulations` contains a single array, plot its empirical CCDF without error bars.
+      - If multiple simulations are provided, compute CCDF at a common grid `xs` for each
+        simulation and plot mean CCDF with error bands (std or sem). If the computed error
+        is all NaN, fall back to plotting the mean only.
+
+    Parameters
+    ----------
+    simulations : list of 1D numpy arrays (continuous-valued)
+    ax : matplotlib.axes.Axes or None
+    xlabel : str
+    error : 'std' or 'sem'
+    use_log_y, use_log_x : bool
+    capsize : int
+    plot_errors : bool
+    plot_label : str
+    xs : None or 1D array of evaluation points. If None, will be auto-generated.
+    num : int, number of evaluation points when xs is None
+    percentile_range : (low_pct, high_pct) to trim extremes when auto-generating xs
+    step : bool, whether to use a step-style plot (recommended for ECDF/CCDF)
+    """
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    # validate input list
+    if len(simulations) == 0:
+        raise ValueError("simulations list is empty")
+
+    # convert to 1D numpy arrays
+    sims = [np.asarray(s).ravel() for s in simulations]
+    n_sims = len(sims)
+
+    # find non-empty sims
+    nonempty_idxs = [i for i,s in enumerate(sims) if s.size > 0]
+    if len(nonempty_idxs) == 0:
+        raise ValueError("All provided simulations are empty.")
+
+    # determine evaluation grid xs
+    if xs is None:
+        # compute global percentiles to avoid extreme outliers dominating the grid
+        low_pct, high_pct = percentile_range
+        # gather all values from non-empty sims into a single concatenated array (may be large)
+        all_vals = np.concatenate([s for s in sims if s.size > 0])
+        vmin = np.percentile(all_vals, low_pct)
+        vmax = np.percentile(all_vals, high_pct)
+        if vmin == vmax:
+            # degenerate: expand small epsilon
+            eps = np.abs(vmin) * 1e-6 if vmin != 0 else 1e-6
+            vmin -= eps
+            vmax += eps
+        xs = np.linspace(vmin, vmax, num)
+    else:
+        xs = np.asarray(xs).ravel()
+        if xs.size == 0:
+            raise ValueError("Provided xs is empty.")
+
+    m = xs.size
+
+    # Preallocate: shape (n_sims, m)
+    ccdfs = np.full((n_sims, m), np.nan, dtype=float)
+
+    # For each simulation, compute empirical CCDF at xs using sorted array + searchsorted
+    # CCDF(x) = P(X > x) = (number of samples strictly greater than x) / N
+    for i, s in enumerate(sims):
+        if s.size == 0:
+            continue
+        sorted_s = np.sort(s)
+        N = sorted_s.size
+        # use side='right' to count values <= x, so N - idx => #greater-than
+        idx = np.searchsorted(sorted_s, xs, side='right')
+        ccdf_vals = (N - idx) / float(N)
+        ccdfs[i, :] = ccdf_vals
+
+    # compute mean and error across sims (nan-aware)
+    mean_ccdf = np.nanmean(ccdfs, axis=0)
+
+    # determine error vector
+    if n_sims == 1:
+        err = None
+    else:
+        if error == 'std':
+            err = np.nanstd(ccdfs, axis=0, ddof=0)
+        elif error == 'sem':
+            # use sample std (ddof=1) and divide by sqrt(n_nonan)
+            n_nonan = np.sum(~np.isnan(ccdfs), axis=0)
+            std = np.nanstd(ccdfs, axis=0, ddof=1)
+            with np.errstate(invalid='ignore', divide='ignore'):
+                err = std / np.sqrt(n_nonan)
+            # where n_nonan <= 1 sem is meaningless -> set nan
+            err[n_nonan <= 1] = np.nan
+        else:
+            raise ValueError("error must be 'std' or 'sem'")
+
+        if np.all(np.isnan(err)):
+            err = None
+
+    # apply masks for plotting with log scales
+    plot_mask = ~np.isnan(mean_ccdf)
+    if use_log_y:
+        plot_mask &= (mean_ccdf > 0)
+    if use_log_x:
+        plot_mask &= (xs > 0)
+
+    if not np.any(plot_mask):
+        raise RuntimeError("No valid points to plot (all CCDFs are zero/NaN given log options).")
+
+    xs_plot = xs[plot_mask]
+    mean_plot = mean_ccdf[plot_mask]
+    err_plot = None if err is None else err[plot_mask]
+
+    # plotting: step style recommended to reflect empirical CCDF shape
+    drawstyle = 'steps-post' if step else None
+
+    label = plot_label if plot_label else ('Mean CCDF' if n_sims > 1 else 'CCDF')
+
+    if err is None or (not plot_errors):
+        # just plot mean
+        if step:
+            ax.step(xs_plot, mean_plot, where='post', label=label)
+        else:
+            if drawstyle:
+                ax.plot(xs_plot, mean_plot, '.-', label=label, drawstyle=drawstyle)
+            else:
+                ax.plot(xs_plot, mean_plot, '.-', label=label)
+    else:
+        # use errorbars (vertical)
+        # errorbar with drawstyle isn't supported; we plot points+errorbars and optionally a step line behind
+        ax.errorbar(xs_plot, mean_plot, yerr=err_plot, fmt='.', capsize=capsize, label=label)
+        if step:
+            # draw step line for the mean
+            ax.step(xs_plot, mean_plot, where='post', alpha=0.7)
+        else:
+            ax.plot(xs_plot, mean_plot, '.-', alpha=0.7)
+
+    if use_log_y:
+        ax.set_yscale('log')
+    if use_log_x:
+        ax.set_xscale('log')
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel('CCDF')
+    ax.grid(True, which='both', ls='--', alpha=0.6)
+    ax.legend()
+    return ax
+
 def empirical_pdf(samples):
     """
     Returns pdf of observed data.
