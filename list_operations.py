@@ -255,6 +255,9 @@ def longest_zero_chain(arr):
            Returns None if there are no zeros in the array.
     """
 
+    if len(arr) == 0:
+        return None
+
     a = np.asarray(arr).ravel()              # ensure 1D
     z = (a == 0).astype(int)                 # 1 where zero, else 0
 
