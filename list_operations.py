@@ -242,3 +242,32 @@ def sum_columns_in_groups(arr, group_size=10):
     ]
 
     return np.column_stack(summed_blocks)
+
+def longest_zero_run(arr):
+    """
+    Find the start and end indices of the longest consecutive run of zeros in a 1D array.
+
+    Parameters:
+    arr (array-like): Input 1D array.
+
+    Returns:
+    tuple: (start_index, end_index) of the longest run of zeros (inclusive).
+           Returns None if there are no zeros in the array.
+    """
+
+    a = np.asarray(arr).ravel()              # ensure 1D
+    z = (a == 0).astype(int)                 # 1 where zero, else 0
+
+    # Find run starts/ends for 1s in z (i.e., zeros in original array)
+    p = np.pad(z, (1, 1), constant_values=0)
+    d = np.diff(p)
+    starts = np.where(d == 1)[0]             # inclusive
+    ends   = np.where(d == -1)[0]            # exclusive
+    if starts.size == 0:                     # no zeros at all
+        return None
+
+    lengths = ends - starts
+    i = lengths.argmax()
+    start = starts[i]
+    stop  = ends[i] - 1                      # make inclusive
+    return start, stop
