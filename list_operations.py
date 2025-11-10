@@ -243,15 +243,15 @@ def sum_columns_in_groups(arr, group_size=10):
 
     return np.column_stack(summed_blocks)
 
-def longest_zero_run(arr):
+def longest_zero_chain(arr):
     """
-    Find the start and end indices of the longest consecutive run of zeros in a 1D array.
+    Find the start and end indices of the longest consecutive chain of zeros in a 1D array.
 
     Parameters:
     arr (array-like): Input 1D array.
 
     Returns:
-    tuple: (start_index, end_index) of the longest run of zeros (inclusive).
+    tuple: (start_index, end_index) of the longest chain of zeros (inclusive).
            Returns None if there are no zeros in the array.
     """
 
