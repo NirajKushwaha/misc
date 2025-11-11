@@ -269,12 +269,12 @@ def longest_zero_chain(arr, order_ix=0):
     p = np.pad(z, (1, 1), constant_values=0)
     d = np.diff(p)
     starts = np.where(d == 1)[0]             # inclusive
-    ends   = np.where(d == -1)[0]            # exclusive
+    ends   = np.where(d == -1)[0]-1          # inclusive
     if starts.size <= order_ix:
         return None
 
     lengths = ends - starts
     sorted_ixs = np.argsort(-lengths)        # descending order
     start = starts[sorted_ixs[order_ix]]
-    stop  = ends[sorted_ixs[order_ix]] - 1   # make inclusive
+    stop  = ends[sorted_ixs[order_ix]]
     return start, stop
