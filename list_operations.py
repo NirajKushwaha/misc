@@ -243,14 +243,18 @@ def sum_columns_in_groups(arr, group_size=10):
 
     return np.column_stack(summed_blocks)
 
-def longest_zero_chain(arr):
+def longest_zero_chain(arr, order_ix=0):
     """
     Find the start and end indices of the longest consecutive chain of zeros in a 1D array.
 
-    Parameters:
+    Parameters
+    ----------
     arr (array-like): Input 1D array.
+    order_ix (int): The index of the order to consider (default is 0).
+        0 corresponds to the longest chain of zeros, 1 to the second longest, etc.
 
-    Returns:
+    Returns
+    -------
     tuple: (start_index, end_index) of the longest chain of zeros (inclusive).
            Returns None if there are no zeros in the array.
     """
@@ -270,7 +274,7 @@ def longest_zero_chain(arr):
         return None
 
     lengths = ends - starts
-    i = lengths.argmax()
-    start = starts[i]
-    stop  = ends[i] - 1                      # make inclusive
+    sorted_ixs = np.argsort(-lengths)        # descending order
+    start = starts[sorted_ixs[order_ix]]
+    stop  = ends[sorted_ixs[order_ix]] - 1   # make inclusive
     return start, stop
