@@ -270,7 +270,7 @@ def longest_zero_chain(arr, order_ix=0):
     d = np.diff(p)
     starts = np.where(d == 1)[0]             # inclusive
     ends   = np.where(d == -1)[0]            # exclusive
-    if starts.size == 0:                     # no zeros at all
+    if starts.size <= order_ix:
         return None
 
     lengths = ends - starts
