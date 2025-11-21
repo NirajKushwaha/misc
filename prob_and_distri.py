@@ -60,14 +60,12 @@ def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, pl
 
     x = np.asarray(samples, dtype=float)
 
-    # Sort and get unique values + counts
     x_unique, counts = np.unique(x, return_counts=True)
     n = len(x)
 
     # Survival counts: number of samples >= x_i
     survival_counts = np.flip(np.cumsum(np.flip(counts)))
 
-    # CCDF = survival_count / N
     ccdf = survival_counts / n
 
     ccdf_series = pd.Series(ccdf, index=x_unique)
