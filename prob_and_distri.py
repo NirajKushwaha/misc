@@ -51,6 +51,8 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
 
 def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
+    TEST IT MORE THOROUGHLY.
+
     Computes and optionally plots the empirical CCDF of continuous data
     without repeated vertical stacks (one point per unique x).
     """
@@ -65,8 +67,9 @@ def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, pl
 
     # Survival counts: number of samples >= x_i
     survival_counts = np.flip(np.cumsum(np.flip(counts)))
-
     ccdf = survival_counts / n
+
+    # ccdf = 1-np.cumsum(counts/n)
 
     if plot:
         ax.loglog(x_unique, ccdf, marker='.', label=plot_label)
