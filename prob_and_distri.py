@@ -45,11 +45,14 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False):
     if(return_data):
         return dt
 
-def empirical_ccdf_continuous(samples, plot=True, return_data=False):
+def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False):
     """
     Computes and optionally plots the empirical CCDF of continuous data
     without repeated vertical stacks (one point per unique x).
     """
+
+    if ax is None:
+        fig, ax = plt.subplots()
 
     x = np.asarray(samples, dtype=float)
 
@@ -66,9 +69,9 @@ def empirical_ccdf_continuous(samples, plot=True, return_data=False):
     ccdf_series = pd.Series(ccdf, index=x_unique)
 
     if plot:
-        plt.loglog(ccdf_series.index, ccdf_series.values, marker='.')
-        plt.ylabel("CCDF = P(X ≥ x)")
-        plt.grid(True, which="both", ls='--', alpha=0.6)
+        ax.loglog(ccdf_series.index, ccdf_series.values, marker='.')
+        # ax.set_ylabel("CCDF = P(X ≥ x)")
+        ax.grid(True, which="both", ls='--', alpha=0.6)
 
     if return_data:
         return ccdf_series
