@@ -38,8 +38,37 @@ def empirical_ccdf(samples, plot=True, return_data=False):
 
     if(plot):
         plt.loglog(dt)
+        plt.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
         return dt
+
+def empirical_ccdf_continuous(samples, plot=True, return_data=False):
+    """
+    Computes and optionally plots the empirical CCDF of continuous data
+    without repeated vertical stacks (one point per unique x).
+    """
+
+    x = np.asarray(samples, dtype=float)
+
+    # Sort and get unique values + counts
+    x_unique, counts = np.unique(x, return_counts=True)
+    n = len(x)
+
+    # Survival counts: number of samples >= x_i
+    survival_counts = np.flip(np.cumsum(np.flip(counts)))
+
+    # CCDF = survival_count / N
+    ccdf = survival_counts / n
+
+    ccdf_series = pd.Series(ccdf, index=x_unique)
+
+    if plot:
+        plt.loglog(ccdf_series.index, ccdf_series.values, marker='.')
+        plt.ylabel("CCDF = P(X ≥ x)")
+        plt.grid(True, which="both", ls='--', alpha=0.6)
+
+    if return_data:
+        return ccdf_series
 
 def plot_discrete_ccdf(
     simulations,
