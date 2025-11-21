@@ -2,7 +2,7 @@
 
 from .utils import *
 
-def empirical_ccdf(samples, ax=None, plot=True, return_data=False):
+def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
     Plots ccdf of observed data.
     Only works for discrete data.
@@ -12,10 +12,14 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False):
     ----------
     samples : ndarray
         1D array of observed data.
+    ax : matplotlib.axes.Axes, None
+        Axes to plot on. If None, creates a new figure and axes.
     plot : bool, True
         If True, plot the ccdf.
     return_data : bool, False
         If True, return the ccdf data.
+    plot_label : str, ""
+        Label for the plot.
     
     Returns
     -------
@@ -40,12 +44,12 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False):
     dt = dt[0]          #ccdf_data
 
     if(plot):
-        ax.loglog(dt, marker='.')
+        ax.loglog(dt, marker='.', label=plot_label)
         ax.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
         return dt
 
-def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False):
+def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
     Computes and optionally plots the empirical CCDF of continuous data
     without repeated vertical stacks (one point per unique x).
@@ -69,7 +73,7 @@ def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False):
     ccdf_series = pd.Series(ccdf, index=x_unique)
 
     if plot:
-        ax.loglog(ccdf_series.index, ccdf_series.values, marker='.')
+        ax.loglog(ccdf_series.index, ccdf_series.values, marker='.', label=plot_label)
         # ax.set_ylabel("CCDF = P(X ≥ x)")
         ax.grid(True, which="both", ls='--', alpha=0.6)
 
