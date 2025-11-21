@@ -2,7 +2,7 @@
 
 from .utils import *
 
-def empirical_ccdf(samples, plot=True, return_data=False):
+def empirical_ccdf(samples, ax=None, plot=True, return_data=False):
     """
     Plots ccdf of observed data.
     Only works for discrete data.
@@ -21,7 +21,10 @@ def empirical_ccdf(samples, plot=True, return_data=False):
     -------
     pd.Series
     """
-    
+
+    if ax is None:
+        fig, ax = plt.subplots()
+
     dt = samples
     
     if not isinstance(dt, np.ndarray):
@@ -37,8 +40,8 @@ def empirical_ccdf(samples, plot=True, return_data=False):
     dt = dt[0]          #ccdf_data
 
     if(plot):
-        plt.loglog(dt)
-        plt.grid(True, which="both", ls='--', alpha=0.6)
+        ax.loglog(dt, marker='.')
+        ax.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
         return dt
 
