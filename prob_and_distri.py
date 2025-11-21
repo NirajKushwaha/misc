@@ -68,15 +68,13 @@ def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, pl
 
     ccdf = survival_counts / n
 
-    ccdf_series = pd.Series(ccdf, index=x_unique)
-
     if plot:
-        ax.loglog(ccdf_series.index, ccdf_series.values, marker='.', label=plot_label)
+        ax.loglog(x_unique, ccdf, marker='.', label=plot_label)
         # ax.set_ylabel("CCDF = P(X ≥ x)")
         ax.grid(True, which="both", ls='--', alpha=0.6)
 
     if return_data:
-        return ccdf_series
+        return ccdf
 
 def plot_discrete_ccdf(
     simulations,
