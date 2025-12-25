@@ -53,6 +53,23 @@ class Halley2D:
         ])
 
     def solve(self, x0, y0, tol=1e-10, max_iter=50):
+        """
+        Parameters
+        ----------
+        x0, y0 : float
+            Initial guess for the solution.
+        tol : float
+            Tolerance for convergence.
+        max_iter : int
+            Maximum number of iterations.
+
+        Returns
+        -------
+        x, y : float
+            Approximate solution to the system of equations. If the method fails to converge
+            or the solution is unstable, returns (np.nan, np.nan).
+        """
+
         x, y = x0, y0
 
         for _ in range(max_iter):
