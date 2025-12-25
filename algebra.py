@@ -6,29 +6,38 @@ class Halley2D:
     starting from an initial guess (x0, y0).
     """
 
-    def __init__(self, f1, f2, h=1e-6):
+    def __init__(self, f1, f2, h=1e-6, *args):
         """
+        Parameters
+        ----------
         f1, f2 : callable
-            Functions f1(x,y), f2(x,y).
-            ex-> def f1(x,y): return x**2 + y**2 - 1
+            Functions f1(x, y, *args), f2(x, y, *args)
         h : float
             Step size for numerical differentiation
+        *args :
+            Extra positional parameters passed to f1 and f2
         """
+
         self.f1 = f1
         self.f2 = f2
         self.h = h
+        self.args = args
 
     def F(self, x, y):
-        return np.array([self.f1(x, y), self.f2(x, y)])
+        return np.array([
+            self.f1(x, y, *self.args),
+            self.f2(x, y, *self.args)
+        ])
 
     def jacobian(self, x, y):
         h = self.h
+        a = self.args
 
-        df1_dx = (self.f1(x + h, y) - self.f1(x - h, y)) / (2*h)
-        df1_dy = (self.f1(x, y + h) - self.f1(x, y - h)) / (2*h)
+        df1_dx = (self.f1(x + h, y, *a) - self.f1(x - h, y, *a)) / (2 * h)
+        df1_dy = (self.f1(x, y + h, *a) - self.f1(x, y - h, *a)) / (2 * h)
 
-        df2_dx = (self.f2(x + h, y) - self.f2(x - h, y)) / (2*h)
-        df2_dy = (self.f2(x, y + h) - self.f2(x, y - h)) / (2*h)
+        df2_dx = (self.f2(x + h, y, *a) - self.f2(x - h, y, *a)) / (2 * h)
+        df2_dy = (self.f2(x, y + h, *a) - self.f2(x, y - h, *a)) / (2 * h)
 
         return np.array([
             [df1_dx, df1_dy],
@@ -37,15 +46,16 @@ class Halley2D:
 
     def hessian(self, f, x, y):
         h = self.h
+        a = self.args
 
-        dxx = (f(x + h, y) - 2*f(x, y) + f(x - h, y)) / h**2
-        dyy = (f(x, y + h) - 2*f(x, y) + f(x, y - h)) / h**2
+        dxx = (f(x + h, y, *a) - 2 * f(x, y, *a) + f(x - h, y, *a)) / h**2
+        dyy = (f(x, y + h, *a) - 2 * f(x, y, *a) + f(x, y - h, *a)) / h**2
         dxy = (
-            f(x + h, y + h)
-            - f(x + h, y - h)
-            - f(x - h, y + h)
-            + f(x - h, y - h)
-        ) / (4*h**2)
+            f(x + h, y + h, *a)
+            - f(x + h, y - h, *a)
+            - f(x - h, y + h, *a)
+            + f(x - h, y - h, *a)
+        ) / (4 * h**2)
 
         return np.array([
             [dxx, dxy],
@@ -57,17 +67,16 @@ class Halley2D:
         Parameters
         ----------
         x0, y0 : float
-            Initial guess for the solution.
+            Initial guess
         tol : float
-            Tolerance for convergence.
+            Tolerance for convergence
         max_iter : int
-            Maximum number of iterations.
+            Maximum number of iterations
 
         Returns
         -------
         x, y : float
-            Approximate solution to the system of equations. If the method fails to converge
-            or the solution is unstable, returns (np.nan, np.nan).
+            Solution (x, y) if converged and stable, else (np.nan, np.nan)
         """
 
         x, y = x0, y0
@@ -88,7 +97,7 @@ class Halley2D:
 
                 if not stable:
                     return np.nan, np.nan ## Halley method converged but the solution is unstable
-                # --------------------------------
+                # -------------------------
 
                 return x, y ## Halley method converged with stable solution
 
