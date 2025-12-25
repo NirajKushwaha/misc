@@ -6,7 +6,7 @@ class Halley2D:
     starting from an initial guess (x0, y0).
     """
 
-    def __init__(self, f1, f2, h=1e-6, *args):
+    def __init__(self, f1, f2, args, h=1e-6):
         """
         Parameters
         ----------
@@ -14,8 +14,9 @@ class Halley2D:
             Functions f1(x, y, *args), f2(x, y, *args)
         h : float
             Step size for numerical differentiation
-        *args :
-            Extra positional parameters passed to f1 and f2
+        args : tuple
+            Extra positional parameters passed to f1 and f2.
+            Pass args as a tuple, even if there is only one argument.
         """
 
         self.f1 = f1
