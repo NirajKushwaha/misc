@@ -6,7 +6,7 @@ class Halley2D:
     starting from an initial guess (x0, y0).
     """
 
-    def __init__(self, f1, f2, args, h=1e-6):
+    def __init__(self, f1, f2, args, h=1e-6, iprint=False):
         """
         Parameters
         ----------
@@ -17,12 +17,14 @@ class Halley2D:
         args : tuple
             Extra positional parameters passed to f1 and f2.
             Pass args as a tuple, even if there is only one argument.
+        iprint : bool
         """
 
         self.f1 = f1
         self.f2 = f2
         self.h = h
         self.args = args
+        self.iprint = iprint
 
     def F(self, x, y):
         return np.array([
@@ -97,6 +99,8 @@ class Halley2D:
                 )
 
                 if not stable:
+                    if self.iprint:
+                        print("Unstable solution detected.")
                     return np.nan, np.nan ## Halley method converged but the solution is unstable
                 # -------------------------
 
@@ -122,4 +126,6 @@ class Halley2D:
             x -= step[0]
             y -= step[1]
 
+        if self.iprint:
+            print("Halley method did not converge within the maximum number of iterations.")
         return np.nan, np.nan ## Halley method did not converge
