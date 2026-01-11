@@ -100,7 +100,7 @@ class Halley2D:
 
                 if not stable:
                     if self.iprint:
-                        print("Unstable solution detected.")
+                        print("Unstable solution detected:", (x,y))
                     return np.nan, np.nan ## Halley method converged but the solution is unstable
                 # -------------------------
 
