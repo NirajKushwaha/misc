@@ -6,7 +6,7 @@ class Halley2D:
     starting from an initial guess (x0, y0).
     """
 
-    def __init__(self, f1, f2, args, h=1e-6, iprint=False):
+    def __init__(self, f1, f2, args=(), h=1e-6, iprint=False):
         """
         Parameters
         ----------
@@ -14,7 +14,7 @@ class Halley2D:
             Functions f1(x, y, *args), f2(x, y, *args)
         h : float
             Step size for numerical differentiation
-        args : tuple
+        args : tuple, ()
             Extra positional parameters passed to f1 and f2.
             Pass args as a tuple, even if there is only one argument.
         iprint : bool
@@ -108,9 +108,13 @@ class Halley2D:
 
 
             J = self.jacobian(x, y)
-            J_inv = np.linalg.inv(J)
 
-            delta = J_inv @ F
+            try:
+                delta = np.linalg.solve(J, F)
+            except np.linalg.LinAlgError:
+                if self.iprint:
+                    print("Jacobian is singular.")
+                return np.nan, np.nan
 
             H1 = self.hessian(self.f1, x, y)
             H2 = self.hessian(self.f2, x, y)
@@ -120,11 +124,23 @@ class Halley2D:
                 H2 @ delta
             ])
 
-            correction = np.eye(2) - 0.5 * J_inv @ H_delta
-            step = np.linalg.inv(correction) @ delta
+            correction = np.eye(2) - 0.5 * np.linalg.solve(J, H_delta)
 
-            x -= step[0]
-            y -= step[1]
+            try:
+                step = np.linalg.solve(correction, delta)
+            except np.linalg.LinAlgError:
+                step = delta  # fallback to Newton
+
+            # damping
+            alpha = 1.0
+            while alpha > 1e-4:
+                x_new = x - alpha * step[0]
+                y_new = y - alpha * step[1]
+                if np.linalg.norm(self.F(x_new, y_new)) < np.linalg.norm(F):
+                    break
+                alpha *= 0.5
+
+            x, y = x_new, y_new
 
         if self.iprint:
             print("Halley method did not converge within the maximum number of iterations.")
