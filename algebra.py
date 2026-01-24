@@ -65,7 +65,7 @@ class Halley2D:
             [dxy, dyy]
         ])
 
-    def solve(self, x0, y0, tol=1e-10, max_iter=200):
+    def solve(self, x0, y0, tol=1e-10, max_iter=100):
         """
         Parameters
         ----------
