@@ -83,10 +83,7 @@ def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, pl
     if return_data:
         return ccdf
 
-
-
-
-def gmm_mode_analysis(
+def peak_finder_GMM(
     data,
     kmax=5,
     grid_points=2000,
