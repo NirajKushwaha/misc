@@ -181,7 +181,7 @@ def empirical_pdf(samples):
 
     Parameters
     ----------
-    dt : ndarray
+    samples : ndarray
 
     Returns
     -------
