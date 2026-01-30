@@ -190,6 +190,9 @@ def empirical_pdf(samples):
 
     dt = samples
 
+    if np.any(dt.dtype != int):
+        raise ValueError("empirical_pdf only works for discrete integer data.")
+
     if not isinstance(dt, np.ndarray):
         # Convert x into a NumPy array
         dt = np.array(dt)
