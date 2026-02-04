@@ -334,6 +334,14 @@ def count_distribution_peaks(
     """
 
     xmin, xmax = x.min(), x.max()
+
+    # ---- handle degenerate case ----
+    if np.allclose(xmin, xmax):
+        xs = np.array([xmin])
+        pdf = np.array([1.0])
+        peaks = np.array([0])
+        return 1, xs, pdf, peaks
+
     span = xmax - xmin
 
     # extend range so boundary peaks move inward
