@@ -319,7 +319,7 @@ def count_distribution_peaks(
     min_peak_distance_val : float
         Minimum distance between peaks in the same units as x.
     plot_distri : bool
-        If True, plot the estimated distribution with detected peaks.
+        If True, a very simple plot of the estimated distribution with detected peaks.
 
     Returns
     -------
