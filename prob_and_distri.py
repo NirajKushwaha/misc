@@ -5,6 +5,7 @@ from .utils import *
 from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from scipy.signal import find_peaks
+from scipy.stats import gaussian_kde
 
 def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
@@ -293,3 +294,70 @@ def Freedman_Diaconis_bins(data, return_bin_width=False):
         return num_bins, bin_width
     else:
         return num_bins
+
+def count_distribution_peaks(
+    x,
+    grid_points=2000,
+    prominence=0.01,
+    extend_frac=0.05,
+    min_peak_distance_val=0.1,
+    plot_distri=False
+    ):
+    """
+    Count number of peaks in the distribution of data x using KDE and peak finding.
+
+    Parameters
+    ----------
+    x : array-like, shape (n,)
+        1D samples.
+    grid_points : int
+        Number of points in the grid for KDE evaluation.
+    prominence : float
+        Prominence threshold for peak detection.
+    extend_frac : float
+        Fraction to extend the range of x for KDE evaluation.
+    min_peak_distance_val : float
+        Minimum distance between peaks in the same units as x.
+    plot_distri : bool
+        If True, plot the estimated distribution with detected peaks.
+
+    Returns
+    -------
+    n_peaks : int
+        Number of detected peaks.
+    xs : ndarray
+        Grid points where the PDF is evaluated.
+    pdf : ndarray
+        Estimated probability density function values at xs.
+    peaks : ndarray
+        Indices of the detected peaks in xs.
+    """
+
+    xmin, xmax = x.min(), x.max()
+    span = xmax - xmin
+
+    # extend range so boundary peaks move inward
+    xs = np.linspace(
+        xmin - extend_frac * span,
+        xmax + extend_frac * span,
+        grid_points,
+    )
+
+    dx = xs[1] - xs[0]
+    min_distance_pts = int(np.ceil(min_peak_distance_val / dx))
+
+    kde = gaussian_kde(x)
+    pdf = kde(xs)
+
+    peaks, _ = find_peaks(pdf, 
+                              prominence=prominence, 
+                              distance=min_distance_pts)
+
+    if plot_distri:
+        plt.plot(xs, pdf)
+        plt.plot(xs[peaks], pdf[peaks], "x")
+        plt.xlabel("x")
+        plt.ylabel("Probability Density")
+        plt.title(f"Number of peaks: {len(peaks)}")
+        plt.show()
+    return len(peaks), xs, pdf, peaks
