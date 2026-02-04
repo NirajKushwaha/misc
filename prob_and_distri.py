@@ -304,7 +304,7 @@ def count_distribution_peaks(
     plot_distri=False
     ):
     """
-    Count number of peaks in the distribution of data x using KDE and peak finding.
+    Count ("significant") number of peaks in the distribution of data x using KDE and peak finding.
 
     Parameters
     ----------
