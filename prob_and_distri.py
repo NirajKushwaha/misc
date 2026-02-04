@@ -354,10 +354,10 @@ def count_distribution_peaks(
                               distance=min_distance_pts)
 
     if plot_distri:
-        plt.plot(xs, pdf)
-        plt.plot(xs[peaks], pdf[peaks], "x")
+        plt.plot(xs, pdf/pdf.max(), label="Estimated PDF")
+        plt.plot(xs[peaks], pdf[peaks]/pdf.max(), "x")
         plt.xlabel("x")
-        plt.ylabel("Probability Density")
+        plt.ylabel("PDF")
         plt.title(f"Number of peaks: {len(peaks)}")
         plt.show()
     return len(peaks), xs, pdf, peaks
