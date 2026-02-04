@@ -359,5 +359,6 @@ def count_distribution_peaks(
         plt.xlabel("x")
         plt.ylabel("PDF")
         plt.title(f"Number of peaks: {len(peaks)}")
+        plt.legend()
         plt.show()
     return len(peaks), xs, pdf, peaks
