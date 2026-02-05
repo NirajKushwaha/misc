@@ -209,7 +209,7 @@ def count_distribution_peaks(
     grid_points=2000,
     prominence=0.01,
     extend_frac=0.05,
-    min_peak_distance_val=0.1,
+    min_peak_distance_val=0.4,
     plot_distri=False
     ):
     """
