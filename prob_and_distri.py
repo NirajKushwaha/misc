@@ -2,7 +2,6 @@
 
 from .utils import *
 
-from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
