@@ -1,5 +1,6 @@
 from .utils import *
 from shapely.geometry import Point
+import geopandas as gpd
 
 def polygons_intersection_mapping(gdf1, gdf2):
     """
