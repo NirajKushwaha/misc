@@ -8,9 +8,11 @@ from scipy.stats import gaussian_kde
 
 def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
-    Plots ccdf of observed data.
-    Only works for discrete data.
-    This function is to be used for a very basic first look at the data.
+    Plot the empirical CCDF of discrete observed data.
+
+    This function is intended as a first visual check for heavy-tailed data.
+    It computes the survival function P(X >= x) on the observed support only,
+    which avoids artificial gaps from unobserved integer values.
     
     Parameters
     ----------
@@ -33,25 +35,27 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
     if ax is None:
         fig, ax = plt.subplots()
 
-    dt = samples
-    
-    if not isinstance(dt, np.ndarray):
-        # Convert x into a NumPy array
-        dt = np.array(dt)
-    
-    dt = np.bincount(dt)
-    dt = dt/dt.sum()             #For Normalization
-    dt[dt == 0] = np.nan
-    dt = pd.DataFrame(dt)
-    dt = dt.cumsum(skipna=True)           #To get commulaative distribution
-    dt = (1-dt)                    #To get complimentary commulative distribution
-    dt = dt[0]          #ccdf_data
+    dt = np.asarray(samples)
+
+    if dt.ndim != 1:
+        raise ValueError("samples must be a 1D array-like object.")
+    if dt.size == 0:
+        raise ValueError("samples must contain at least one value.")
+    if not np.issubdtype(dt.dtype, np.integer):
+        raise ValueError("empirical_ccdf only works for discrete integer data.")
+    if np.any(dt <= 0):
+        raise ValueError("empirical_ccdf expects positive integer data for log-log plotting.")
+
+    x_unique, counts = np.unique(dt, return_counts=True)
+    survival_counts = np.flip(np.cumsum(np.flip(counts)))
+    ccdf = survival_counts / dt.size
+    ccdf_data = pd.Series(ccdf, index=x_unique)
 
     if(plot):
-        ax.loglog(dt, marker='.', label=plot_label)
+        ax.loglog(ccdf_data.index, ccdf_data.values, marker='.', linestyle='none', label=plot_label)
         ax.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
-        return dt
+        return ccdf_data
 
 def empirical_ccdf_continuous(samples, ax=None, plot=True, return_data=False, plot_label=""):
     """
