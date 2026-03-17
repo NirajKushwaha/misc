@@ -215,6 +215,7 @@ def sum_columns_in_groups(arr, group_size=10):
     ----------
     arr : np.ndarray
         2D input array of shape (rows, columns)
+        Also supports 1D input, which will be treated as a single row.
     group_size : int, 10
         Number of columns per summation group
 
