@@ -12,7 +12,9 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
 
     This function is intended as a first visual check for heavy-tailed data.
     It computes the survival function P(X >= x) on the observed support only,
-    which avoids artificial gaps from unobserved integer values.
+    which avoids artificial gaps from unobserved integer values. Zero-valued
+    observations are included in the empirical CCDF, but omitted from the
+    log-log plot because x = 0 cannot be displayed on a logarithmic axis.
     
     Parameters
     ----------
@@ -43,8 +45,8 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
         raise ValueError("samples must contain at least one value.")
     if not np.issubdtype(dt.dtype, np.integer):
         raise ValueError("empirical_ccdf only works for discrete integer data.")
-    if np.any(dt <= 0):
-        raise ValueError("empirical_ccdf expects positive integer data for log-log plotting.")
+    if np.any(dt < 0):
+        raise ValueError("empirical_ccdf expects non-negative integer data.")
 
     x_unique, counts = np.unique(dt, return_counts=True)
     survival_counts = np.flip(np.cumsum(np.flip(counts)))
@@ -52,7 +54,17 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
     ccdf_data = pd.Series(ccdf, index=x_unique)
 
     if(plot):
-        ax.loglog(ccdf_data.index, ccdf_data.values, marker='.', linestyle='none', label=plot_label)
+        plot_mask = ccdf_data.index > 0
+        if not np.any(plot_mask):
+            raise ValueError("empirical_ccdf cannot plot when all observations are zero on a log x-axis.")
+
+        ax.loglog(
+            ccdf_data.index[plot_mask],
+            ccdf_data.values[plot_mask],
+            marker='.',
+            linestyle='none',
+            label=plot_label
+        )
         ax.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
         return ccdf_data
