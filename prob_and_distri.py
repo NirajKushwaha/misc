@@ -6,7 +6,18 @@ from scipy.stats import norm
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
 
-def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""):
+def empirical_ccdf(
+    samples,
+    ax=None,
+    plot=True,
+    return_data=False,
+    plot_label="",
+    power_law_exponent=None,
+    power_law_exponent_type="pmf",
+    power_law_xmin=None,
+    power_law_label=None,
+    power_law_kwargs=None,
+):
     """
     Plot the empirical CCDF of discrete observed data.
 
@@ -28,6 +39,20 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
         If True, return the ccdf data.
     plot_label : str, ""
         Label for the plot.
+    power_law_exponent : float, None
+        If provided, overlay a power-law reference curve on the CCDF plot.
+    power_law_exponent_type : {"pmf", "ccdf"}, "pmf"
+        Interpretation of `power_law_exponent`. For a discrete power-law
+        distribution with PMF proportional to x^{-alpha}, use "pmf". The
+        corresponding CCDF reference decays approximately as x^{-(alpha - 1)}.
+        Use "ccdf" if the supplied exponent already corresponds to the CCDF.
+    power_law_xmin : int, None
+        Positive x-value used to anchor the reference curve to the empirical
+        CCDF. If None, uses the smallest positive observed value.
+    power_law_label : str, None
+        Label for the reference curve. If None, a default label is created.
+    power_law_kwargs : dict, None
+        Extra matplotlib keyword arguments passed to the reference plot.
     
     Returns
     -------
@@ -58,13 +83,57 @@ def empirical_ccdf(samples, ax=None, plot=True, return_data=False, plot_label=""
         if not np.any(plot_mask):
             raise ValueError("empirical_ccdf cannot plot when all observations are zero on a log x-axis.")
 
+        x_plot = ccdf_data.index[plot_mask].to_numpy()
+        y_plot = ccdf_data.values[plot_mask]
+
         ax.loglog(
-            ccdf_data.index[plot_mask],
-            ccdf_data.values[plot_mask],
+            x_plot,
+            y_plot,
             marker='.',
             linestyle='none',
             label=plot_label
         )
+
+        if power_law_exponent is not None:
+            if power_law_exponent_type not in {"pmf", "ccdf"}:
+                raise ValueError("power_law_exponent_type must be either 'pmf' or 'ccdf'.")
+
+            if power_law_exponent_type == "pmf":
+                ccdf_exponent = power_law_exponent - 1
+                if ccdf_exponent <= 0:
+                    raise ValueError(
+                        "For a PMF exponent reference, power_law_exponent must be greater than 1."
+                    )
+            else:
+                ccdf_exponent = power_law_exponent
+                if ccdf_exponent <= 0:
+                    raise ValueError(
+                        "For a CCDF exponent reference, power_law_exponent must be positive."
+                    )
+
+            if power_law_xmin is None:
+                anchor_x = x_plot[0]
+            else:
+                anchor_x = power_law_xmin
+                if anchor_x <= 0:
+                    raise ValueError("power_law_xmin must be positive for log-log plotting.")
+                if anchor_x not in ccdf_data.index:
+                    raise ValueError("power_law_xmin must be an observed value in samples.")
+
+            anchor_y = ccdf_data.loc[anchor_x]
+            ref_mask = x_plot >= anchor_x
+            x_ref = x_plot[ref_mask]
+            y_ref = anchor_y * (x_ref / anchor_x) ** (-ccdf_exponent)
+
+            ref_kwargs = {"linestyle": "--", "linewidth": 1.5, **(power_law_kwargs or {})}
+            if power_law_label is None:
+                if power_law_exponent_type == "pmf":
+                    power_law_label = f"Power-law ref (PMF exponent={power_law_exponent:g})"
+                else:
+                    power_law_label = f"Power-law ref (CCDF exponent={power_law_exponent:g})"
+
+            ax.loglog(x_ref, y_ref, label=power_law_label, **ref_kwargs)
+
         ax.grid(True, which="both", ls='--', alpha=0.6)
     if(return_data):
         return ccdf_data
