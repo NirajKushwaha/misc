@@ -1,4 +1,8 @@
 from .utils import *
+try:
+    from numba import njit
+except:
+    pass
 
 def data_entropy(x, normalized=False, base="e"):
     """
