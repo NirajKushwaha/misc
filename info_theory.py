@@ -286,3 +286,229 @@ class MutualInformation:
                 mutual_info_trials.append(mutual_info_boot)
             
             return mutual_info_trials
+
+# ======================================== #
+# Class and functions for Transfer entropy #
+# ======================================== # 
+
+class TransferEntropy():
+    def __init__(self, delay=1, rng=None):
+        """
+        Parameters
+        ----------
+        delay : int, 1
+            Time delay between source x[t] and target future y[t + delay].
+        rng : np.random.RandomState, None
+        """
+
+        if not isinstance(delay, (int, np.integer)):
+            raise TypeError("delay must be an integer")
+        if delay < 1:
+            raise ValueError("delay must be a positive integer")
+
+        self.important_indexes = [(0,0,0,0),(1,0,1,0),(2,1,2,1),(3,1,3,1),(4,2,0,0),(5,2,1,0),(6,3,2,1),(7,3,3,1)]
+        self.delay = int(delay)
+        self.rng = np.random if rng is None else rng
+
+    def calc(self, x, y):
+        """Calculate transfer entropy between two binary time series.
+
+        Parameters
+        ----------
+        x : ndarray
+        y : ndarray
+
+        Returns
+        -------
+        float
+            TE in bits.
+        """
+        
+        assert set(np.unique(x)) <= frozenset((0,1)), "x must be binary"
+        assert set(np.unique(y)) <= frozenset((0,1)), "y must be binary"
+        if x.shape != y.shape:
+            raise ValueError("x and y must have the same shape")
+        if x.ndim != 1:
+            raise ValueError("x and y must be 1D arrays")
+        if x.size <= self.delay:
+            raise ValueError("time series length must be greater than delay")
+
+        time_series = np.vstack((x, y)).T
+        
+        # calculate each term in the transfer entropy equation and sum them together
+        joint_distribution_yT_yt_xt_list = joint_distribution_yT_yt_xt_new(time_series, self.delay)
+        joint_distribution_yT_yt_list = joint_distribution_yT_yt_new(time_series, self.delay)
+        joint_distribution_yt_xt_list = joint_distribution_yt_xt_new(time_series, self.delay)
+        distribution_y_list = distribution_y_new(time_series, self.delay)
+
+        te_terms = []
+
+        for i, j, k, l in self.important_indexes:
+            if(joint_distribution_yT_yt_xt_list[i] == 0 or
+               joint_distribution_yT_yt_list[j] == 0 or
+               joint_distribution_yt_xt_list[k] == 0 or
+               distribution_y_list[l] == 0):
+                pass
+            else:
+                te_terms.append(te_calculator((joint_distribution_yT_yt_xt_list[i],
+                                               joint_distribution_yT_yt_list[j],
+                                               joint_distribution_yt_xt_list[k],distribution_y_list[l])))
+        return sum(te_terms)
+    
+    def shuffle_calc(self, x, y):
+        """Shuffle both time series in the same way and return naive transfer entropy estimate.
+
+        Returns
+        -------
+        float
+            TE in bits.
+        """
+
+        randix = self.rng.permutation(np.arange(x.size, dtype=int))
+        return self.calc(x[randix], y[randix])
+# end TransferEntropy
+
+
+@njit
+def distribution_y_new(time_series_two_pols, delay=1):
+    counts_array = np.zeros(2)   #0->0 , 1->1
+
+    time_series_y = time_series_two_pols[:,1]
+
+    time_series_y = time_series_y[:-delay]
+
+    time_series_length = len(time_series_y)
+
+    for i in range(len(time_series_y)):
+        if(time_series_y[i] == 0):
+            counts_array[0] = counts_array[0] + 1
+        elif(time_series_y[i] == 1):
+            counts_array[1] = counts_array[1] + 1
+
+    distribution_array = np.zeros(2)
+
+    distribution_array[0] = counts_array[0] / time_series_length
+    distribution_array[1] = counts_array[1] / time_series_length
+
+    return distribution_array
+
+@njit()
+def distribution_x_new(time_series_two_pols, delay=1):
+    counts_array = np.zeros(2)   #0->0 , 1->1
+
+    time_series_y = time_series_two_pols[:,0]
+
+    time_series_y = time_series_y[:-delay]
+
+    time_series_length = len(time_series_y)
+
+    for i in range(len(time_series_y)):
+        if(time_series_y[i] == 0):
+            counts_array[0] = counts_array[0] + 1
+        elif(time_series_y[i] == 1):
+            counts_array[1] = counts_array[1] + 1
+
+    distribution_array = np.zeros(2)
+
+    distribution_array[0] = counts_array[0] / time_series_length
+    distribution_array[1] = counts_array[1] / time_series_length
+
+    return distribution_array
+
+@njit()
+def joint_distribution_yt_xt_new(time_series_two_pols, delay=1):
+    counts_array = np.zeros(4)   #(yt,xt)  0->00 , 1->01 , 2->10 , 3-> 11
+
+    time_series_yt_xt = time_series_two_pols[:-delay]
+
+    time_series_length = len(time_series_yt_xt)
+
+    for i in range(time_series_length):           
+        if(time_series_yt_xt[i][1] == 0 and time_series_yt_xt[i][0] == 0):
+            counts_array[0] = counts_array[0] + 1
+        elif(time_series_yt_xt[i][1] == 0 and time_series_yt_xt[i][0] == 1):
+            counts_array[1] = counts_array[1] + 1
+        elif(time_series_yt_xt[i][1] == 1 and time_series_yt_xt[i][0] == 0):
+            counts_array[2] = counts_array[2] + 1
+        elif(time_series_yt_xt[i][1] == 1 and time_series_yt_xt[i][0] == 1):
+            counts_array[3] = counts_array[3] + 1
+
+    distribution_array = np.zeros(4)
+
+    for i in range(len(distribution_array)):
+        distribution_array[i] = counts_array[i] / time_series_length
+
+    return distribution_array
+
+@njit()
+def joint_distribution_yT_yt_new(time_series_two_pols, delay=1):
+    counts_array = np.zeros(4)   #(yT,yt)  0->00 , 1->01 , 2->10 , 3-> 11
+
+    time_series_yT_yt = time_series_two_pols
+    time_series_length = len(time_series_yT_yt)
+
+
+    for i in range(time_series_length-delay):           
+        if(time_series_yT_yt[i+delay][1] == 0 and time_series_yT_yt[i][1] == 0):
+            counts_array[0] = counts_array[0] + 1
+        elif(time_series_yT_yt[i+delay][1] == 0 and time_series_yT_yt[i][1] == 1):
+            counts_array[1] = counts_array[1] + 1
+        elif(time_series_yT_yt[i+delay][1] == 1 and time_series_yT_yt[i][1] == 0):
+            counts_array[2] = counts_array[2] + 1
+        elif(time_series_yT_yt[i+delay][1] == 1 and time_series_yT_yt[i][1] == 1):
+            counts_array[3] = counts_array[3] + 1
+
+    distribution_array = np.zeros(4)
+
+    for i in range(len(distribution_array)):
+        distribution_array[i] = counts_array[i] / (time_series_length-delay)
+
+    return distribution_array
+
+@njit
+def joint_distribution_yT_yt_xt_new(time_series_two_pols, delay=1):
+    counts_array = np.zeros(8)   #(yT,yt,xt)  0->000,1->001,2->010,3->011,4->100,5->101,6->110,7->111
+
+    time_series_yT_yt_xt = time_series_two_pols
+    time_series_length = len(time_series_yT_yt_xt)
+
+    for i in range(time_series_length-delay):           
+        if(time_series_yT_yt_xt[i+delay][1] == 0 and
+           time_series_yT_yt_xt[i][1] == 0 and
+           time_series_yT_yt_xt[i][0] == 0):
+            counts_array[0] = counts_array[0] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 0 and
+             time_series_yT_yt_xt[i][1] == 0 and
+             time_series_yT_yt_xt[i][0] == 1):
+            counts_array[1] = counts_array[1] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 0 and
+             time_series_yT_yt_xt[i][1] == 1 and
+             time_series_yT_yt_xt[i][0] == 0):
+            counts_array[2] = counts_array[2] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 0  and
+             time_series_yT_yt_xt[i][1] == 1  and
+             time_series_yT_yt_xt[i][0] == 1):
+            counts_array[3] = counts_array[3] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 1  and
+             time_series_yT_yt_xt[i][1] == 0  and
+             time_series_yT_yt_xt[i][0] == 0):
+            counts_array[4] = counts_array[4] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 1  and
+             time_series_yT_yt_xt[i][1] == 0  and
+             time_series_yT_yt_xt[i][0] == 1):
+            counts_array[5] = counts_array[5] + 1
+        elif(time_series_yT_yt_xt[i+delay][1] == 1  and
+             time_series_yT_yt_xt[i][1] == 1  and
+             time_series_yT_yt_xt[i][0] == 0):
+            counts_array[6] = counts_array[6] + 1              
+        elif(time_series_yT_yt_xt[i+delay][1] == 1  and
+             time_series_yT_yt_xt[i][1] == 1  and
+             time_series_yT_yt_xt[i][0] == 1):
+            counts_array[7] = counts_array[7] + 1            
+
+    distribution_array = np.zeros(8)
+
+    for i in range(len(distribution_array)):
+        distribution_array[i] = counts_array[i] / (time_series_length-delay)
+
+    return distribution_array
