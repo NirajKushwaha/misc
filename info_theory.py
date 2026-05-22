@@ -516,3 +516,8 @@ def joint_distribution_yT_yt_xt_new(time_series_two_pols, delay=1):
         distribution_array[i] = counts_array[i] / (time_series_length-delay)
 
     return distribution_array
+
+@njit
+def te_calculator(distribution_data):
+    yT_yt_xt , yT_yt , yt_xt , y = distribution_data
+    return (yT_yt_xt * np.log2((yT_yt_xt * y) / (yT_yt * yt_xt)))
