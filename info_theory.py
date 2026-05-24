@@ -314,13 +314,16 @@ class TransferEntropy():
         self.delay = int(delay)
         self.rng = np.random if rng is None else rng
 
-    def calc(self, x, y):
+    def calc(self, x, y, shuffle=False):
         """Calculate transfer entropy between two binary time series.
 
         Parameters
         ----------
         x : ndarray
         y : ndarray
+        shuffle : bool, False
+            If True, shuffle time series y randomly and calculate transfer entropy.
+            This can be used to get a null distribution of transfer entropy for statistical testing.
 
         Returns
         -------
@@ -336,6 +339,10 @@ class TransferEntropy():
             raise ValueError("x and y must be 1D arrays")
         if x.size <= self.delay:
             raise ValueError("time series length must be greater than delay")
+
+        if shuffle:
+            randix = self.rng.permutation(np.arange(y.size, dtype=int))
+            y = y[randix]
 
         time_series = np.vstack((x, y)).T
         
