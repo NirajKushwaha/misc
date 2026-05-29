@@ -298,6 +298,8 @@ class MutualInformation:
 class TransferEntropy():
     def __init__(self, delay=1, rng=None):
         """
+        Transfer entropy class to measure TE for discrete time series (supports 0,1 binarization only for now).
+
         Parameters
         ----------
         delay : int, 1
