@@ -11,12 +11,12 @@ def get_unique_words(corpus):
     
     Returns
     -------
-    set
-        A set of unique words found in the corpus, converted to lowercase.
+    np.ndarray
+        A sorted array of unique words found in the corpus, converted to lowercase.
     """
 
     pattern = re.compile(r"\b\w+\b")
     unique = set()
     for text in corpus:
         unique.update(map(str.lower, pattern.findall(text)))
-    return unique
+    return np.sort(list(unique))
