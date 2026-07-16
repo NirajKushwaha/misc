@@ -1,6 +1,7 @@
 from .utils import *
 import dill as pickle
 import gzip
+import json
 
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
@@ -152,3 +153,23 @@ def load_nc(file_name):
     """
 
     return xr.load_dataset(file_name)
+
+def load_json(file_name):
+    """
+    Load a JSON file.
+
+    Parameters
+    ----------
+    file_name : str
+        The name of the input JSON file, with extension .json
+
+    Returns
+    -------
+    dict
+        The loaded JSON data as a dictionary.
+    """
+
+    with open(file_name, 'r') as file:
+        data = json.load(file)
+    
+    return data
