@@ -2,6 +2,7 @@ from .utils import *
 import dill as pickle
 import gzip
 import json
+from pathlib import Path
 
 def find_files(start_dir, file_extension, prefix=None, full_path=True):
     """
@@ -48,7 +49,7 @@ def find_files(start_dir, file_extension, prefix=None, full_path=True):
     
     return matching_files
 
-def save_pickle(data, file_name, compress=False):
+def save_pickle(data, file_name, compress=False, create_dir=False):
     """
     Save data to a pickle file.
 
@@ -62,7 +63,13 @@ def save_pickle(data, file_name, compress=False):
         If True, the file will be compressed using gzip.
         Filename should end in .gz if compress is True and .p otherwise.
         Compressed files take less space but require more time to read/write.
+    create_dir : bool, False
+        If True, the function will create the directory if it does not exist.
     """
+
+    if create_dir:
+        file_path = Path(file_name)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
     if compress:
         with gzip.open(file_name, 'wb') as file:
