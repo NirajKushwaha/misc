@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from cleantext import clean, clean_texts
 from .texts import get_unique_words
 from wordfreq import word_frequency
+from scipy import sparse
 
 def custom_stop_words(include_these=None):
     """
@@ -151,55 +152,51 @@ class Corpus:
 
         feature_names = vectorizer.get_feature_names_out()
 
-        # Find top-n words for every document
-        top_words_per_doc = []
+        # Select top-n entries directly from each sparse row. This avoids
+        # materializing a dense document-by-vocabulary array.
+        top_indices_per_doc = []
+        top_data_per_doc = []
+        important_column_mask = np.zeros(tfidf_matrix.shape[1], dtype=bool)
 
-        for row in tfidf_matrix:
-            row = row.toarray().ravel()
+        for row_idx in range(tfidf_matrix.shape[0]):
+            row_start, row_end = tfidf_matrix.indptr[row_idx:row_idx + 2]
+            row_indices = tfidf_matrix.indices[row_start:row_end]
+            row_data = tfidf_matrix.data[row_start:row_end]
 
-            nonzero_indices = np.flatnonzero(row)
-
-            # Sort by TF-IDF descending
-            sorted_indices = nonzero_indices[
-                np.argsort(row[nonzero_indices])[::-1]
+            column_order = np.argsort(row_indices)
+            sorted_order = column_order[
+                np.argsort(row_data[column_order])[::-1]
             ]
+            top_indices = row_indices[sorted_order[:n]]
+            top_data = row_data[sorted_order[:n]]
+            top_indices_per_doc.append(top_indices)
+            top_data_per_doc.append(top_data)
+            important_column_mask[top_indices] = True
 
-            top_indices = sorted_indices[:n]
+        # Preserve the original vocabulary order.
+        important_indices = np.flatnonzero(important_column_mask)
+        important_words = feature_names[important_indices].tolist()
+        column_positions = np.full(tfidf_matrix.shape[1], -1, dtype=np.intp)
+        column_positions[important_indices] = np.arange(len(important_indices))
 
-            top_words = set(feature_names[top_indices])
-            top_words_per_doc.append(top_words)
+        # Build the coarse matrix directly in CSR format.
+        top_columns_per_doc = []
+        for top_indices in top_indices_per_doc:
+            top_columns_per_doc.append(column_positions[top_indices])
 
-        # Union of top-n words across all documents
-        important_words = set().union(*top_words_per_doc)
-
-        # Preserve the original vocabulary order
-        important_words = [
-            word for word in feature_names
-            if word in important_words
-        ]
-
-        # Original word -> column index
-        feature_to_index = {
-            word: i for i, word in enumerate(feature_names)
-        }
-
-        important_indices = [
-            feature_to_index[word]
-            for word in important_words
-        ]
-
-        # Extract only the union vocabulary
-        coarse_matrix = tfidf_matrix[:, important_indices].tocsr()
-
-        # Mask words that aren't in the document's top-n
-        coarse_matrix = coarse_matrix.tolil()
-
-        for doc_idx, top_words in enumerate(top_words_per_doc):
-            for col_idx, word in enumerate(important_words):
-                if word not in top_words:
-                    coarse_matrix[doc_idx, col_idx] = 0.0
-
-        coarse_matrix = coarse_matrix.tocsr()
+        row_counts = np.array(
+            [len(top_indices) for top_indices in top_indices_per_doc],
+            dtype=np.intp
+        )
+        coarse_matrix = sparse.csr_matrix(
+            (
+                np.concatenate(top_data_per_doc),
+                np.concatenate(top_columns_per_doc),
+                np.concatenate([[0], np.cumsum(row_counts)])
+            ),
+            shape=(tfidf_matrix.shape[0], len(important_indices))
+        )
+        coarse_matrix.sort_indices()
 
         # Create a new vectorizer with the reduced vocabulary.
         # This makes the feature names / vocabulary easy to work with.
