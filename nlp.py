@@ -74,7 +74,7 @@ class Corpus:
 
     def generate_stop_words(self):
         """
-        Generate a list of stop words based on the corpus.
+        Generate a list of stop words based on the corpus using Zipf's law.
         """
 
         unique_words = get_unique_words(self.cleaned_corpus)
