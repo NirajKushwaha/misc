@@ -1,4 +1,5 @@
 from utils import *
+import re
 
 def get_unique_words(corpus):
     """

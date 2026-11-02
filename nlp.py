@@ -5,7 +5,6 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from cleantext import clean, clean_texts
 from .texts import get_unique_words
 from wordfreq import word_frequency
-import re
 
 def custom_stop_words(include_these=None):
     """
