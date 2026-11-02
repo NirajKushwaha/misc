@@ -119,6 +119,8 @@ class Corpus:
 
     def get_coarse_tfidf(self, n=10, use_cleaned_corpus=True):
         """
+        IS NOT REALLY TESTED. LLM SLOP AT THE MOMENT. USE WITH CAUTION.
+
         Create a coarse-grained TF-IDF representation.
 
         The final vocabulary is the union of the top-n TF-IDF words
