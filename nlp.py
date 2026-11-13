@@ -7,6 +7,31 @@ from .texts import get_unique_words
 from wordfreq import word_frequency
 from scipy import sparse
 
+import spacy
+
+def lemmatize_words_in_list(words_list):
+    """
+    Lemmatize a list of words using spaCy's English language model.
+
+    Parameters
+    ----------
+    words_list : list of str
+        A list of words to be lemmatized.
+
+    Returns
+    -------
+    list of str
+        A list of lemmatized words.
+    """
+
+    nlp = spacy.load("en_core_web_sm")
+
+    lemmatized_words = list(set(
+        token.lemma_.lower()
+        for token in nlp(" ".join(words_list))
+    ))
+    return lemmatized_words
+
 def custom_stop_words(include_these=None):
     """
     Get stop words list that includes some extra stop words that are due to the way sklearn's TfidfVectorizer tokenizes words.
